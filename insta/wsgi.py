@@ -1,5 +1,5 @@
 """
-WSGI config for library_project project.
+WSGI config for insta project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'insta.settings')
 
 application = get_wsgi_application()
