@@ -61,9 +61,22 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise ValidationError(context)
         return data
 
-    def validate_email_or_phone(self, value):
+    def validate_email_phone_number(self, value):
         value = str(value).lower()
-        ## to do
+        print("validate_email_or_phone", value)
+        if value and User.objects.filter(email=value).exists():
+            data = {
+                "status": "error",
+                'message': 'Email allaqcachon ro\'yxatdan o\'tgan'
+            }
+            raise exceptions.ValidationError(data)
+        elif value and User.objects.filter(phone=value).exists():
+            data = {
+                "status": "error",
+                'message': 'Telefon raqam allaqcachon ro\'yxatdan o\'tgan'
+            }
+            raise exceptions.ValidationError(data)
+
         return value
 
     def to_representation(self, instance):

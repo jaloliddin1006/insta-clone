@@ -4,14 +4,15 @@ from django.template.loader import render_to_string
 from rest_framework.exceptions import ValidationError
 import threading
 from django.core.mail import EmailMessage
+import phonenumbers
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
-PHONE_REGEX = re.compile(r"^\+?1?\d{9,15}$")
+PHONE_REGEX = re.compile(r"^\+?998?\d{9,15}$")
 
 def check_email_or_phone(email_phone_number):
     if re.fullmatch(EMAIL_REGEX, email_phone_number):
         sign_type = 'email'
-    elif re.fullmatch(PHONE_REGEX, email_phone_number):
+    elif phonenumbers.is_valid_number(phonenumbers.parse(email_phone_number)):
         sign_type = 'phone'
     else:
         context = {
