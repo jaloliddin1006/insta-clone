@@ -92,6 +92,8 @@ class User(AbstractUser, SharedModel):
 
 PHONE_EXPIRE_TIME = 2
 EMAIL_EXPIRE_TIME = 5
+
+
 class UserConfirmation(SharedModel):
     TYPE_CHOICES = (
         (VIA_EMAIL, VIA_EMAIL),
@@ -107,10 +109,10 @@ class UserConfirmation(SharedModel):
         return str(self.user.__str__())
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            if self.verify_type == VIA_EMAIL:
-                self.expiration_time = datetime.now() + timedelta(minutes=EMAIL_EXPIRE_TIME)
-            elif self.verify_type == VIA_PHONE:
-                self.expiration_time = datetime.now() + timedelta(minutes=PHONE_EXPIRE_TIME)
+
+        if self.verify_type == VIA_EMAIL:
+            self.expiration_time = datetime.now() + timedelta(minutes=EMAIL_EXPIRE_TIME)
+        elif self.verify_type == VIA_PHONE:
+            self.expiration_time = datetime.now() + timedelta(minutes=PHONE_EXPIRE_TIME)
 
         super(UserConfirmation, self).save(*args, **kwargs)

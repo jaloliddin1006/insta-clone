@@ -5,6 +5,8 @@ from rest_framework.exceptions import ValidationError
 import threading
 from django.core.mail import EmailMessage
 import phonenumbers
+from decouple import config
+from twilio.rest import Client
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 PHONE_REGEX = re.compile(r"^\+?998?\d{9,15}$")
@@ -56,3 +58,14 @@ def send_mail_code(email, code):
         'to_email': email,
         'content_type': 'html'
     })
+
+
+def send_phone_code(phone, code):
+    account_sid = config('TWILIO_ACCOUNT_SID')
+    auth_token = config('TWILIO_AUTH_TOKEN')
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        body=f"Sizning tasdiqlash kodingiz: {code}",
+        from_="+998932977419", # config('TWILIO_PHONE_NUMBER')
+        to=f"{phone}"
+    )

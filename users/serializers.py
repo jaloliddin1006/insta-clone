@@ -1,4 +1,4 @@
-from shared.utilits import check_email_or_phone, send_mail_code
+from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code
 from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
@@ -28,6 +28,7 @@ class SignUpSerializer(serializers.ModelSerializer):
             send_mail_code(user.email, code)
         elif user.auth_type == VIA_PHONE:
             code = user.create_verify_code(verify_type=VIA_PHONE)
+            send_mail_code(user.phone, code)
             # send_phone_code(user.phone, code)
         else:
             raise exceptions.ValidationError("auth_type not defined")
