@@ -1,6 +1,6 @@
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.datetime_safe import datetime
@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 
 from shared.utilits import send_mail_code
 from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
-from .serializers import SignUpSerializer
+from .serializers import SignUpSerializer, ChangeUserInformationSerializer
 
 class CreateUserView(CreateAPIView):
     queryset = User.objects.all()
@@ -87,3 +87,32 @@ class GetNewVerifyCodeAPIView(APIView):
             }
             raise ValidationError(context)
         return True
+
+
+class ChangeUserInformationView(UpdateAPIView):
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = ChangeUserInformationSerializer
+    http_method_names = ['put', 'patch']
+
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        super(ChangeUserInformationView, self).update(request, *args, **kwargs)
+        context = {
+            "status": "success",
+            'message': 'Ma\'lumotlar <put> bilan o\'zgartirildi',
+            'auth_status': request.user.auth_status,
+        }
+
+        return Response(context, status=200)
+
+    def partial_update(self, request, *args, **kwargs):
+        super(ChangeUserInformationView, self).partial_update(request, *args, **kwargs)
+        context = {
+            "status": "success",
+            'message': 'Ma\'lumotlar <putch> bilan o\'zgartirildi',
+            'auth_status': request.user.auth_status,
+        }
+
+        return Response(context, status=200)

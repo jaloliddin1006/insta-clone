@@ -1,3 +1,5 @@
+from django.contrib.auth.password_validation import validate_password
+
 from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code
 from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
@@ -85,3 +87,69 @@ class SignUpSerializer(serializers.ModelSerializer):
         data = super(SignUpSerializer, self).to_representation(instance)
         data.update(instance.token())
         return data
+
+
+
+class ChangeUserInformationSerializer(serializers.Serializer):
+    first_name = serializers.CharField(required=True, write_only=True)
+    last_name = serializers.CharField(required=True, write_only=True)
+    username = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
+        if password != confirm_password:
+            context = {
+                "status": "error",
+                'message': 'Parollar mos kelmadi'
+            }
+            raise exceptions.ValidationError(context)
+
+        if password:
+            validate_password(password)
+            validate_password(confirm_password)
+        return data
+
+    def validate_username(self, username):
+        if len(username) < 5 or len(username) > 30:
+            context = {
+                "status": "error",
+                'message': 'Username 5 ta belgidan kam va 30 belgidan ko\'p bo\'lmasligi kerak'
+            }
+            raise exceptions.ValidationError(context)
+
+        if username.isdigit():
+            raise exceptions.ValidationError("Username faqat raqamdan iborat bo\'lmasligi kerak")
+
+        return username
+
+    def validate_first_name(self, first_name):
+        if len(first_name) < 2 or len(first_name) > 35:
+            raise exceptions.ValidationError("Ism 2 ta belgidan kam va 35 belgidan ko\'p bo\'lmasligi kerak")
+        if first_name.isdigit():
+            raise exceptions.ValidationError("Ism raqamdan iborat bo\'lmasligi kerak")
+        if not first_name.isalpha():
+            raise exceptions.ValidationError("Ism faqat harflardan iborat bo\'lishi kerak")
+        return first_name
+
+    def validate_last_name(self, last_name):
+        if len(last_name) < 2 or len(last_name) > 35:
+            raise exceptions.ValidationError("Familya 2 ta belgidan kam va 35 belgidan ko\'p bo\'lmasligi kerak")
+        if last_name.isdigit():
+            raise exceptions.ValidationError("Familya raqamdan iborat bo\'lmasligi kerak")
+        if not last_name.isalpha():
+            raise exceptions.ValidationError("Familya faqat harflardan iborat bo\'lishi kerak")
+        return last_name
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name')
+        instance.last_name = validated_data.get('last_name')
+        instance.username = validated_data.get('username')
+        instance.set_password(validated_data.get('password'))
+        if instance.auth_status == CODE_VERIFIED:
+            instance.auth_status = DONE
+        instance.save()
+        return instance
