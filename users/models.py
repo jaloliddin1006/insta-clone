@@ -1,5 +1,5 @@
 import uuid
-from random import random
+import random
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
@@ -60,7 +60,7 @@ class User(AbstractUser, SharedModel):
             normalize_email = self.email.lower()
             self.email = normalize_email
 
-    def check_password(self):
+    def check_pass(self):
         if not self.password:
             temp_password = f"{uuid.uuid4().__str__().split('-')[-1]}"
             self.password = temp_password
@@ -76,16 +76,20 @@ class User(AbstractUser, SharedModel):
             'access': str(refresh.access_token)
         }
 
+
+    def save(self, *args, **kwargs):
+        # if not self.pk:
+        self.clean()
+        super(User, self).save(*args, **kwargs)
+
     def clean(self):
         self.check_username()
         self.check_email()
-        self.check_password()
+        self.check_pass()
         self.hash_password()
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.clean()
-        super(User, self).save(*args, **kwargs)
+
+
 PHONE_EXPIRE_TIME = 2
 EMAIL_EXPIRE_TIME = 5
 class UserConfirmation(SharedModel):

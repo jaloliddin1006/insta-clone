@@ -1,4 +1,6 @@
 import re
+
+from django.template.loader import render_to_string
 from rest_framework.exceptions import ValidationError
 import threading
 from django.core.mail import EmailMessage
@@ -42,3 +44,14 @@ class Email:
             email.content_subtype = "html"
         EmailThreading(email).start()
 
+def send_mail_code(email, code):
+    html_content = render_to_string(
+        template_name='email/authentication/activate_account.html',
+        context={'code': code}
+    )
+    Email.send_email({
+        'subject': "Instagram tashdiqlash uchun ro'yxatdan o'tihs",
+        'body': html_content,
+        'to_email': email,
+        'content_type': 'html'
+    })
