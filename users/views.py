@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.datetime_safe import datetime
 from rest_framework.exceptions import ValidationError
-
+from django.shortcuts import get_object_or_404
 from shared.utilits import send_mail_code
 from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
-from .serializers import SignUpSerializer, ChangeUserInformationSerializer
+from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer
 
 class CreateUserView(CreateAPIView):
     queryset = User.objects.all()
@@ -94,8 +94,9 @@ class ChangeUserInformationView(UpdateAPIView):
     serializer_class = ChangeUserInformationSerializer
     http_method_names = ['put', 'patch']
 
-    def get_object(self):
-        return self.request.user
+    def get_object(self, *args, **kwargs):
+        user = get_object_or_404(User, pk=self.request.user.pk)
+        return user
 
     def update(self, request, *args, **kwargs):
         super(ChangeUserInformationView, self).update(request, *args, **kwargs)
@@ -116,3 +117,21 @@ class ChangeUserInformationView(UpdateAPIView):
         }
 
         return Response(context, status=200)
+
+
+class ChangeUserPhotoView(UpdateAPIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        serializer = ChangeUserPhotoSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.update(user, serializer.validated_data)
+
+            context = {
+                "status": "success",
+                'message': 'Rasm muvaffaqiyatli o\'zgartirildi',
+                'auth_status': user.auth_status,
+            }
+            return Response(context, status=200)
+        return Response(serializer.errors, status=400)
