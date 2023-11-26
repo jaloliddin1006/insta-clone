@@ -5,7 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.datetime_safe import datetime
 from rest_framework.exceptions import ValidationError
-from .models import User, CODE_VERIFIED, DONE, NEW
+
+from shared.utilits import send_mail_code
+from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
 from .serializers import SignUpSerializer
 
 class CreateUserView(CreateAPIView):
@@ -46,4 +48,42 @@ class VerifyAPIView(APIView):
             user.auth_status = CODE_VERIFIED
             user.save()
 
+        return True
+
+
+class GetNewVerifyCodeAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        self.chccknew_verify_code(user)
+        if user.auth_type == VIA_EMAIL:
+            code = user.create_verify_code(VIA_EMAIL)
+            send_mail_code(user.email, code)
+        elif user.auth_type == VIA_PHONE:
+            code = user.create_verify_code(VIA_PHONE)
+            send_mail_code(user.email, code)
+            # send_phone_code(user.phone, code)
+        else:
+            context = {
+                "status": "error",
+                'message': 'Email yoki telefon raqam kiritilmagan'
+            }
+            raise ValidationError(context)
+
+        context = {
+            "status": "success",
+            'message': 'Yangi kod yuborildi',
+        }
+        return Response(context)
+
+    @staticmethod
+    def chccknew_verify_code(user):
+        verifies = user.user_codes.filter(expiration_time__gte=datetime.now(), is_confirmation=False)
+        if verifies.exists():
+            context = {
+                "status": "error",
+                'message': 'Kod hali amal qilinmoqda'
+            }
+            raise ValidationError(context)
         return True
