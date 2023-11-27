@@ -1,10 +1,12 @@
+from tokenize import TokenError
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import FileExtensionValidator
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code, check_user_type
 from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_STEP
@@ -254,3 +256,17 @@ class LoginRefreshSerializer(TokenRefreshSerializer):
         user = get_object_or_404(User, id=user_id)
         update_last_login(None, user)
         return data
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    # def validate(self, attrs):
+    #     self.token = attrs['refresh']
+    #     return attrs
+    #
+    # def save(self, **kwargs):
+    #     try:
+    #         RefreshToken(self.token).blacklist()
+    #     except TokenError:
+    #         raise ValidationError("Token is invalid or expired"

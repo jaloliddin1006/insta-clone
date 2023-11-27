@@ -6,12 +6,14 @@ from rest_framework.views import APIView
 from django.utils.datetime_safe import datetime
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shared.utilits import send_mail_code
 from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
 from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, LoginSerializer, \
-    LoginRefreshSerializer
+    LoginRefreshSerializer, LogoutSerializer
 
 
 class CreateUserView(CreateAPIView):
@@ -150,3 +152,27 @@ class LoginRefreshView(TokenRefreshView):
     permission_classes = (permissions.AllowAny, )
     http_method_names = ['post', ]
     serializer_class = LoginRefreshSerializer
+
+class LogoutView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = LogoutSerializer
+    http_method_names = ['post', ]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            refresh_token = request.data.get('refresh')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            context = {
+                "status": True,
+                'message': 'Siz muvaffaqiyatli chiqib ketdingiz',
+            }
+            return Response(context, status=200)
+        except TokenError as e:
+            context = {
+                "status": False,
+                'message': e.args[0],
+            }
+            return Response(context, status=400)
