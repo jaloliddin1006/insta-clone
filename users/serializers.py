@@ -1,10 +1,12 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import FileExtensionValidator
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
 
-from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code
+from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code, check_user_type
 from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from django.db.models import Q
 
 
@@ -161,6 +163,7 @@ class ChangeUserPhotoSerializer(serializers.Serializer):
         FileExtensionValidator(
             allowed_extensions=['png', 'jpg', 'jpeg', 'heic']
         )])
+
     def update(self, instance, validated_data):
         avatar = validated_data.get('photo')
         if avatar:
@@ -168,3 +171,72 @@ class ChangeUserPhotoSerializer(serializers.Serializer):
             instance.auth_status = PHOTO_STEP
             instance.save()
         return instance
+
+
+class LoginSerializer(TokenObtainSerializer):
+    def __init__(self, *args, **kwargs):
+        super(LoginSerializer, self).__init__(*args, **kwargs)
+        self.fields['userinput'] = serializers.CharField(required=True)
+        self.fields['username'] = serializers.CharField(required=False, read_only=True)
+
+    def auth_validate(self, data):
+        user_input = str(data.get('userinput')).lower()
+        input_type = check_user_type(user_input)
+        if input_type == "username":
+            username = user_input
+        elif input_type == "email":
+            username = self.get_user(email__iexact=user_input).username
+        elif input_type == "phone":
+            username = self.get_user(phone=user_input).username
+        else:
+            context = {
+                "status": "error",
+                'message': 'login noto\'g\'ri kiritildi'
+            }
+            raise ValidationError(context)
+
+        authentication_kwargs = {
+            self.username_field: username,
+            'password': data.get('password')
+        }
+
+        current_user = User.objects.filter(username=username).first() ### bu usul xato, chunki ro'yxatdan to'liq o'tmagan bo'lsa username bo'yicha qidirib topmaydi
+        if current_user is None or current_user.auth_status not in [DONE, PHOTO_STEP]:
+            context = {
+                "status": False,
+                'message': 'Sizning akkauntingiz tasdiqlanmagan. To\'liq ro\'yxatdan o\'ting'
+            }
+            raise ValidationError(context)
+
+        user = authenticate(**authentication_kwargs)
+
+        if user is not None:
+            self.user = user
+        else:
+            context = {
+                "status": False,
+                'message': 'login yoki parol noto\'g\'ri'
+            }
+            raise ValidationError(context)
+    def validate(self, data):
+        self.auth_validate(data)
+        if self.user.auth_status not in [DONE, PHOTO_STEP]:
+            context = {
+                "status": False,
+                'message': 'Sizning akkauntingiz tasdiqlanmagan. To\'liq ro\'yxatdan o\'ting'
+            }
+            raise PermissionDenied(context)
+        data = self.user.token()
+        data['auth_status'] = self.user.auth_status
+        data["full_name"] = self.user.full_name
+        return data
+
+    def get_user(self, **kwargs):
+        user = User.objects.filter(**kwargs)
+        if not user.exists():
+            context = {
+                "status": "error",
+                'message': 'login yoki parol noto\'g\'ri'
+            }
+            raise ValidationError(context)
+        return user.first()

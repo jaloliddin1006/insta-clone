@@ -10,11 +10,12 @@ from twilio.rest import Client
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 PHONE_REGEX = re.compile(r"^\+?998?\d{9,15}$")
+USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
 def check_email_or_phone(email_phone_number):
     if re.fullmatch(EMAIL_REGEX, email_phone_number):
         sign_type = 'email'
-    elif phonenumbers.is_valid_number(phonenumbers.parse(email_phone_number)):
+    elif re.match(PHONE_REGEX, email_phone_number):
         sign_type = 'phone'
     else:
         context = {
@@ -25,7 +26,20 @@ def check_email_or_phone(email_phone_number):
 
     return sign_type
 
-
+def check_user_type(user_input):
+    if re.match(EMAIL_REGEX, user_input):
+        user_input = 'email'
+    elif re.match(PHONE_REGEX, user_input):
+        user_input = 'phone'
+    elif re.match(USERNAME_REGEX, user_input):
+        user_input = 'username'
+    else:
+        context = {
+            "status": "error",
+            'message': 'login noto\'g\'ri kiritildi'
+        }
+        raise ValidationError(context)
+    return user_input
 
 class EmailThreading(threading.Thread):
     def __init__(self, email):

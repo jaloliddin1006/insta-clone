@@ -40,6 +40,10 @@ class User(AbstractUser, SharedModel):
     phone = models.CharField(max_length=13, unique=True, null=True, blank=True)
     avatar = models.ImageField(upload_to='user_avatars/', null=True, blank=True, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'heic'])])
 
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
     def __str__(self):
         return self.username
 
