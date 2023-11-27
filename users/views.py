@@ -6,11 +6,12 @@ from rest_framework.views import APIView
 from django.utils.datetime_safe import datetime
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shared.utilits import send_mail_code
 from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
-from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, LoginSerializer
+from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, LoginSerializer, \
+    LoginRefreshSerializer
 
 
 class CreateUserView(CreateAPIView):
@@ -145,3 +146,7 @@ class LoginAPIView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
     http_method_names = ['post', ]
 
+class LoginRefreshView(TokenRefreshView):
+    permission_classes = (permissions.AllowAny, )
+    http_method_names = ['post', ]
+    serializer_class = LoginRefreshSerializer
