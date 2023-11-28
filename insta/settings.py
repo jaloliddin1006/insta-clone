@@ -39,6 +39,7 @@ DJANGO_APPS = [
 MY_APPS = [
     'users',
     'shared',
+    'post',
     ]
 
 INSTALLED_APPS = DJANGO_APPS + MY_APPS
