@@ -261,16 +261,6 @@ class LoginRefreshSerializer(TokenRefreshSerializer):
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
-    # def validate(self, attrs):
-    #     self.token = attrs['refresh']
-    #     return attrs
-    #
-    # def save(self, **kwargs):
-    #     try:
-    #         RefreshToken(self.token).blacklist()
-    #     except TokenError:
-    #         raise ValidationError("Token is invalid or expired"
-
 class ForgotPasswordSerializer(serializers.Serializer):
     email_or_phone = serializers.CharField(required=True, write_only=True)
 
