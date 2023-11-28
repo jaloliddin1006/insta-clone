@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code, check_user_type
 from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
 from django.db.models import Q
 
 
@@ -270,3 +270,22 @@ class LogoutSerializer(serializers.Serializer):
     #         RefreshToken(self.token).blacklist()
     #     except TokenError:
     #         raise ValidationError("Token is invalid or expired"
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email_or_phone = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        email_or_phone = attrs.get('email_or_phone')
+        if email_or_phone is None:
+            context = {
+                "status": "error",
+                'message': 'email yoki telefon raqam kiritilmadi'
+            }
+            raise ValidationError(context)
+        user_input = str(email_or_phone).lower()
+        user = User.objects.filter(Q(email=user_input) | Q(phone=user_input))
+        if not user.exists():
+            raise NotFound(detail="Bunday user topilmadi")
+
+        attrs['user'] = user.first()
+        return attrs

@@ -10,10 +10,10 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from shared.utilits import send_mail_code
+from shared.utilits import send_mail_code, check_email_or_phone
 from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
 from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, LoginSerializer, \
-    LoginRefreshSerializer, LogoutSerializer
+    LoginRefreshSerializer, LogoutSerializer, ForgotPasswordSerializer
 
 
 class CreateUserView(CreateAPIView):
@@ -176,3 +176,39 @@ class LogoutView(APIView):
                 'message': e.args[0],
             }
             return Response(context, status=400)
+
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = (permissions.AllowAny, )
+    serializer_class = ForgotPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email_or_phone = serializer.validated_data.get('email_or_phone')
+        user = serializer.validated_data.get('user')
+        if check_email_or_phone(email_or_phone) == 'email':
+            code = user.create_verify_code(VIA_EMAIL)
+            send_mail_code(email_or_phone, code)
+        elif check_email_or_phone(email_or_phone) == 'phone':
+            code = user.create_verify_code(VIA_PHONE)
+            send_mail_code(email_or_phone, code)
+            # send_phone_code(user.phone, code)
+        else:
+            context = {
+                "status": "error",
+                'message': 'Email yoki telefon raqam kiritilmagan'
+            }
+            raise ValidationError(context)
+
+        context = {
+            "status": "success",
+            'message': 'Yangi kod yuborildi',
+            "access": user.token()['access'],
+            "refresh": user.token()['refresh_token'],
+            "auth_status": user.auth_status,
+        }
+
+        return Response(context, status=200)
+
