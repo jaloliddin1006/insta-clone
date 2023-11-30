@@ -1,4 +1,4 @@
-from django.core.validators import MaxLengthValidator
+from django.core.validators import MaxLengthValidator, FileExtensionValidator
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models.constraints import UniqueConstraint
@@ -8,9 +8,10 @@ from shared.models import SharedModel
 
 User = get_user_model()
 
+
 class Post(SharedModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_posts')
-    image = models.ImageField(upload_to='post_images/')
+    image = models.ImageField(upload_to='post_images/', validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'heic'])])
     caption = models.TextField(validators=[MaxLengthValidator(2000)])
 
     class Meta:
@@ -47,9 +48,10 @@ class PostLike(SharedModel):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['author', 'post'], name='unique_post_like')
+            UniqueConstraint(
+                fields=['author', 'post'],
+                name='unique_post_like')
         ]
-
 
     def __str__(self):
         return f"{self.post} - {self.author}"
@@ -58,9 +60,13 @@ class PostLike(SharedModel):
 class CommentLike(SharedModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_comment_likes')
     comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='comment_likes')
+
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['author', 'comment'], name='unique_comment_like')
+            UniqueConstraint(
+                fields=['author', 'comment'],
+                name='unique_comment_like')
         ]
+
     def __str__(self):
         return f"{self.comment} - {self.author}"
