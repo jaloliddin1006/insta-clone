@@ -16,6 +16,10 @@ class PostSerializer(serializers.ModelSerializer):
     post_comments_count = serializers.SerializerMethodField('get_post_comments_count')
     is_liked = serializers.SerializerMethodField('get_is_liked')
 
+    extra_kwargs = {
+        'image': {'required': False}
+    }
+
     class Meta:
         model = Post
         fields = ('id', 'author', 'image', 'caption',
