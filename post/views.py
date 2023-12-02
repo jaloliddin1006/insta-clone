@@ -72,3 +72,26 @@ class PostRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
                 'data': []
             }
         )
+
+
+class PostCommentsListView(generics.ListAPIView):
+    serializer_class = PostCommentSerializer
+    permission_classes = (AllowAny,)
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        post_id = self.kwargs.get('pk')
+        queryset =  PostComment.objects.filter(post__id=post_id).order_by('-created_at')
+        return queryset
+
+
+class PostCommentCreateAPIView(generics.CreateAPIView):
+    serializer_class = PostCommentSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get('pk')
+        post = Post.objects.get(id=post_id)
+        serializer.save(author=self.request.user, post=post)
+
+
