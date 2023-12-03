@@ -184,19 +184,35 @@ class PostLikeAPIView(APIView):
 
     def delete(self, requset, pk):
         try:
-            post_like = PostLike.objects.get(
+            post_like = PostLike.objects.filter(
                 author=requset.user,
                 post_id=pk
             )
-            post_like.delete()
+            if post_like.exists():
+                post_like.delete()
+                return Response(
+                    {
+                        'success': True,
+                        'status_code': status.HTTP_200_OK,
+                        'message': 'Bosgan LIKE ingiz o\'chdi mazgi :(',
+                        'data': []
+                    }
+                )
+
+            post_like = PostLike.objects.create(
+                author=requset.user,
+                post_id=pk
+            )
+            serializer = PostLikeSerializer(post_like)
             return Response(
                 {
                     'success': True,
-                    'status_code': status.HTTP_200_OK,
-                    'message': 'Bosgan LIKE ingiz o\'chdi mazgi :(',
-                    'data': []
+                    'status_code': status.HTTP_201_CREATED,
+                    'message': 'Malatsi LIKE bosding mazgiii  :)',
+                    'data': serializer.data
                 }
             )
+
         except Exception as err:
             return Response(
                 {
@@ -221,7 +237,7 @@ class CommentLikeAPIView(APIView):
                     {
                         'success': False,
                         'status_code': status.HTTP_400_BAD_REQUEST,
-                        'message': 'Siz ushbu izohga like bosganingiz mazgi :)',
+                        'message': f"Avval LIKE bosganssan mazgi :D",
                         'data': []
                     }
                 )
@@ -244,24 +260,39 @@ class CommentLikeAPIView(APIView):
                 {
                     'success': False,
                     'status_code': status.HTTP_400_BAD_REQUEST,
-                    'message': f"{err}",
+                    'message': f"Avval LIKE bosganssan mazgi :D",
                     'data': []
                 }
             )
 
-    def delete(self, requset, pk):
+    def delete(self, request, pk):
         try:
-            comment_like = CommentLike.objects.get(
-                author=requset.user,
+            comment_like = CommentLike.objects.filter(
+                author=request.user,
                 comment_id=pk
             )
-            comment_like.delete()
+            if comment_like.exists():
+                comment_like.delete()
+                return Response(
+                    {
+                        'success': True,
+                        'status_code': status.HTTP_204_NO_CONTENT,
+                        'message': 'Bosgan LIKE ingiz o\'chdi mazgi :(',
+                        'data': []
+                    }
+                )
+
+            comment_like = CommentLike.objects.create(
+                author=request.user,
+                comment_id=pk
+            )
+            serializer = CommentLikeSerializer(comment_like)
             return Response(
                 {
                     'success': True,
-                    'status_code': status.HTTP_200_OK,
-                    'message': 'Bosgan LIKE ingiz o\'chdi mazgi :(',
-                    'data': []
+                    'status_code': status.HTTP_201_CREATED,
+                    'message': 'Malatsi LIKE bosding mazgiii  :)',
+                    'data': serializer.data
                 }
             )
         except Exception as err:
