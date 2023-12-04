@@ -127,6 +127,7 @@ class ChangeUserInformationView(UpdateAPIView):
 
 class ChangeUserPhotoView(UpdateAPIView):
     permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = ChangeUserPhotoSerializer
 
     def put(self, request, *args, **kwargs):
         user = request.user

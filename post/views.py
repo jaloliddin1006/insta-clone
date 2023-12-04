@@ -89,6 +89,7 @@ class PostCommentsListView(generics.ListAPIView):
 class PostCommentCreateAPIView(generics.CreateAPIView):
     serializer_class = PostCommentSerializer
     permission_classes = (IsAuthenticated,)
+    queryset = PostComment.objects.all()
 
     def perform_create(self, serializer):
         post_id = self.kwargs.get('pk')
