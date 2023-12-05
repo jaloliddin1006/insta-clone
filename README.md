@@ -172,8 +172,13 @@ server {
 
 ssl serifikatini domenga qoyish
 
-- sudo certbot --nginx -d instagram.mamatmusayev.uz -d www.instagram.mamatmusayev.uz
+- sudo certbot --nginx -d instagram.mamatmusayev.uz
 
+yoki
+- sudo certbot --nginx
+
+keyin kerakli domen tanlanadi
+#
 - systemctl daemon-reload
 
 - sudo systemctl restart nginx
