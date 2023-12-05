@@ -38,6 +38,7 @@ git clone https://github.com/jaloliddin1006/insta-clone.git & cd insta-clone
 
 # deploy qishil uchun tayyorlaymiz
 - pip install gunicorn
+- gunicorn --bind 0.0.0.0:8000 insta.wsgi
 - deactivate
 
 #
