@@ -11,16 +11,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from shared.utilits import send_mail_code, check_email_or_phone
-from .models import User, CODE_VERIFIED, DONE, NEW, VIA_EMAIL, VIA_PHONE
-from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, LoginSerializer, \
-    LoginRefreshSerializer, LogoutSerializer, ForgotPasswordSerializer
+from .models import User, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
+from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, \
+    LoginSerializer, LoginRefreshSerializer, LogoutSerializer, ForgotPasswordSerializer
 
 
 class CreateUserView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = SignUpSerializer
     permission_classes = (permissions.AllowAny, )
-
 
 
 class VerifyAPIView(APIView):
@@ -62,7 +61,7 @@ class GetNewVerifyCodeAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        self.chccknew_verify_code(user)
+        self.check_new_verify_code(user)
         if user.auth_type == VIA_EMAIL:
             code = user.create_verify_code(VIA_EMAIL)
             send_mail_code(user.email, code)
@@ -84,7 +83,7 @@ class GetNewVerifyCodeAPIView(APIView):
         return Response(context)
 
     @staticmethod
-    def chccknew_verify_code(user):
+    def check_new_verify_code(user):
         verifies = user.user_codes.filter(expiration_time__gte=datetime.now(), is_confirmation=False)
         if verifies.exists():
             context = {
@@ -149,10 +148,12 @@ class LoginAPIView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
     http_method_names = ['post', ]
 
+
 class LoginRefreshView(TokenRefreshView):
     permission_classes = (permissions.AllowAny, )
     http_method_names = ['post', ]
     serializer_class = LoginRefreshSerializer
+
 
 class LogoutView(APIView):
     permission_classes = (permissions.IsAuthenticated, )
@@ -177,7 +178,6 @@ class LogoutView(APIView):
                 'message': e.args[0],
             }
             return Response(context, status=400)
-
 
 
 class ForgotPasswordView(APIView):

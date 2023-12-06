@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostListAPIView, PostCreateAPIView, PostRetrieveUpdateDestroyAPIView, PostCommentsListView,\
+from post.post.views import PostListAPIView, PostCreateAPIView, PostRetrieveUpdateDestroyAPIView, PostCommentsListView,\
     PostCommentCreateAPIView, PostCommentListCreateAPIView, CommentRetrieveView, CommentLikeListView, PostLikeListView,\
     PostLikeAPIView, CommentLikeAPIView
 

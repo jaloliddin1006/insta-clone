@@ -1,5 +1,3 @@
-from tokenize import TokenError
-
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.password_validation import validate_password
@@ -9,7 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRef
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code, check_user_type
-from .models import User, UserConfirmation, VIA_EMAIL, VIA_PHONE, NEW, CODE_VERIFIED, DONE, PHOTO_STEP
+from .models import User, VIA_EMAIL, VIA_PHONE, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
 from django.db.models import Q
@@ -95,7 +93,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         data = super(SignUpSerializer, self).to_representation(instance)
         data.update(instance.token())
         return data
-
 
 
 class ChangeUserInformationSerializer(serializers.Serializer):
@@ -247,7 +244,6 @@ class LoginSerializer(TokenObtainSerializer):
         return user.first()
 
 
-
 class LoginRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):
         data = super(self).validate(attrs)
@@ -260,6 +256,7 @@ class LoginRefreshSerializer(TokenRefreshSerializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email_or_phone = serializers.CharField(required=True, write_only=True)

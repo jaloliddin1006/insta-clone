@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Post, PostComment, PostLike, CommentLike
+from post.post.models import Post, PostComment, PostLike, CommentLike
+from post.profile.models import Follow
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -25,9 +26,15 @@ class CommentLikeAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'author')
     search_fields = ('author__username',)
 
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'follower', 'created_at', 'updated_at')
+    list_display_links = ('id', 'user')
+    search_fields = ('user__username', 'follower__username')
+
 
 admin.site.register(Post, PostAdmin)
 admin.site.register(PostComment, PostCommentAdmin)
 admin.site.register(PostLike, PostLikeAdmin)
 admin.site.register(CommentLike, CommentLikeAdmin)
+admin.site.register(Follow, FollowAdmin)
 

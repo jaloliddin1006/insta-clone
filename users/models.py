@@ -14,9 +14,6 @@ VIA_EMAIL, VIA_PHONE = 'email', 'phone'
 NEW, CODE_VERIFIED, DONE, PHOTO_STEP = 'new', 'code_verified', 'done', 'photo_step'
 
 
-
-
-
 class User(AbstractUser, SharedModel):
     USER_ROLE_CHOICES = (
         (ORDINARY_USER, ORDINARY_USER),
@@ -80,7 +77,6 @@ class User(AbstractUser, SharedModel):
             'access': str(refresh.access_token)
         }
 
-
     def save(self, *args, **kwargs):
         # if not self.pk:
         self.clean()
@@ -91,7 +87,6 @@ class User(AbstractUser, SharedModel):
         self.check_email()
         self.check_pass()
         self.hash_password()
-
 
 
 PHONE_EXPIRE_TIME = 2
