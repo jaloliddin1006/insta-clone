@@ -12,35 +12,35 @@ class FollowAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        follow_id = request.data.get('follow_id')
-        self.check_follow(user, follow_id)
-        context = {
-            "status": "success",
-            'message': 'Sizning akkauntingiz tasdiqlandi',
-            'access_token': user.token()['access'],
-            'refresh_token': user.token()['refresh_token'],
-        }
-        return Response(context)
+        follow_id = request.data.get('user_id')
 
-    @staticmethod
-    def check_follow(user, follow_id):
-        follow = user.user_followings.filter(follower_id=follow_id)
+        follow = user.user_followers.filter(follower_id=follow_id)
         if follow.exists():
+            follow.delete()
             context = {
-                "status": "error",
-                'message': 'Siz allaqachon ushbu akkauntga obuna bo\'lgansiz'
+                "status": True,
+                'message': 'Siz obunani bekor qildingiz',
+                'access_token': user.token()['access'],
+                'refresh_token': user.token()['refresh_token'],
             }
-            raise ValidationError(context)
+            return Response(context, status=200)
+
 
         if user.id == follow_id:
             context = {
                 "status": "error",
                 'message': 'Siz o\'zingizga obuna bo\'la olmaysiz'
             }
-            raise ValidationError(context)
+            return Response(context)
 
-        else:
-            follow = Follow.objects.create(user=user, follower_id=follow_id)
-            follow.save()
 
-        return True
+        follow = Follow.objects.create(user=user, follower_id=follow_id)
+        follow.save()
+
+        context = {
+            "status": True,
+            'message': 'Sizning follow bosdingiz',
+            'access_token': user.token()['access'],
+            'refresh_token': user.token()['refresh_token'],
+        }
+        return Response(context, status=201)

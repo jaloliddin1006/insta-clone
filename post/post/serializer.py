@@ -1,5 +1,7 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from post.post.models import Post, PostComment, PostLike, CommentLike
+from post.profile.models import Follow
 from users.models import User
 
 
@@ -72,16 +74,33 @@ class PostCommentSerializer(serializers.ModelSerializer):
 class CommentLikeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = GetUserSerializer(read_only=True)
+    is_followed = serializers.SerializerMethodField('get_is_followed')
 
     class Meta:
         model = CommentLike
-        fields = ('id', 'author', 'comment')
+        fields = ('id', 'author', 'comment', 'is_followed')
+
+    def get_is_followed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            author_comment = obj.comment.author
+            return author_comment.user_followings.filter(follower=request.user).exists()
+        return False
 
 
 class PostLikeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = GetUserSerializer(read_only=True)
+    is_followed = serializers.SerializerMethodField('get_is_followed')
 
     class Meta:
         model = PostLike
-        fields = ('id', 'author', 'post')
+        fields = ('id', 'author', 'post', 'is_followed')
+
+    def get_is_followed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            author_post = obj.author
+            user = get_object_or_404(User, pk=request.user.pk)
+            return author_post.user_followers.filter(follower=user).exists()
+        return False
