@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from shared.custom_pagination import CustomPagination
-from . models import Post, PostComment, PostLike, CommentLike
-from .serializer import PostSerializer, PostCommentSerializer, CommentLikeSerializer, PostLikeSerializer
+from post.post.models import Post, PostComment, PostLike, CommentLike
+from post.post.serializer import PostSerializer, PostCommentSerializer, CommentLikeSerializer, PostLikeSerializer
 
 
 class PostListAPIView(generics.ListAPIView):
