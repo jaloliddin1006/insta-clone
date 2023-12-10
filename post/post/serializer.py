@@ -17,6 +17,7 @@ class PostSerializer(serializers.ModelSerializer):
     post_likes_count = serializers.SerializerMethodField('get_post_likes_count')
     post_comments_count = serializers.SerializerMethodField('get_post_comments_count')
     is_liked = serializers.SerializerMethodField('get_is_liked')
+    is_followed = serializers.SerializerMethodField('get_is_followed')
 
     extra_kwargs = {
         'image': {'required': False}
@@ -26,7 +27,15 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ('id', 'author', 'image', 'caption',
                   'created_at', 'post_likes_count',
-                  'post_comments_count', 'is_liked', )
+                  'post_comments_count', 'is_liked', 'is_followed', )
+
+    def get_is_followed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            author_post = obj.author
+            user = get_object_or_404(User, pk=request.user.pk)
+            return author_post.user_followers.filter(follower=user).exists()
+        return False
 
     @staticmethod
     def get_post_likes_count(obj):

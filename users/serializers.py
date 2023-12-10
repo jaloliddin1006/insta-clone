@@ -6,6 +6,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
+from post.post.serializer import PostSerializer
 from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code, check_user_type
 from .models import User, VIA_EMAIL, VIA_PHONE, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
@@ -276,3 +277,42 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
         attrs['user'] = user.first()
         return attrs
+
+
+class UserProfileViewSerializer(serializers.ModelSerializer):
+
+    is_followed = serializers.SerializerMethodField('get_is_followed')
+    followers_count = serializers.SerializerMethodField('get_followers_count')
+    following_count = serializers.SerializerMethodField('get_following_count')
+    posts_count = serializers.SerializerMethodField('get_posts_count')
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'avatar', 'phone', 'email', 'is_followed', 'followers_count', 'following_count', 'posts_count', 'created_at')
+
+    def get_is_followed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            author_post = obj
+            user = get_object_or_404(User, pk=request.user.pk)
+            return author_post.user_followers.filter(follower=user).exists()
+        return False
+
+    @staticmethod
+    def get_followers_count(obj):
+        return obj.user_followers.count()
+
+    @staticmethod
+    def get_following_count(obj):
+        return obj.user_followings.count()
+
+    @staticmethod
+    def get_posts_count(obj):
+        return obj.user_posts.count()
+    #
+    # @staticmethod
+    # def get_user_posts(obj):
+    #     return PostSerializer(obj.user_posts.all()).data
+
+
+

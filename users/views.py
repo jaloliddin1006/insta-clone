@@ -10,10 +10,11 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from post.post.serializer import PostSerializer
 from shared.utilits import send_mail_code, check_email_or_phone
 from .models import User, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
 from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, \
-    LoginSerializer, LoginRefreshSerializer, LogoutSerializer, ForgotPasswordSerializer
+    LoginSerializer, LoginRefreshSerializer, LogoutSerializer, ForgotPasswordSerializer, UserProfileViewSerializer
 
 
 class CreateUserView(CreateAPIView):
@@ -213,3 +214,19 @@ class ForgotPasswordView(APIView):
 
         return Response(context, status=200)
 
+
+class UserProfileView(APIView):
+    permission_classes = (permissions.AllowAny, )
+    serializer_class = UserProfileViewSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = get_object_or_404(User, username=kwargs.get('username'))
+        serializer = self.serializer_class(user)
+        user_posts = PostSerializer(user.user_posts.all(), many=True)
+        context = {
+            "status": "success",
+            'message': 'Ma\'lumotlar olindi',
+            'data': serializer.data,
+            'posts': user_posts.data,
+        }
+        return Response(context, status=200)
