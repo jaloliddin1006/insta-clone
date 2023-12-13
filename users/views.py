@@ -21,6 +21,7 @@ class CreateUserView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = SignUpSerializer
     permission_classes = (permissions.AllowAny, )
+    allowed_methods = ('POST', )
 
 
 class VerifyAPIView(APIView):
