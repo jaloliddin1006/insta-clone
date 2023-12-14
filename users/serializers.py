@@ -6,7 +6,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from post.post.serializer import PostSerializer
 from shared.utilits import check_email_or_phone, send_mail_code, send_phone_code, check_user_type
 from .models import User, VIA_EMAIL, VIA_PHONE, CODE_VERIFIED, DONE, PHOTO_STEP
 from rest_framework import serializers, exceptions
@@ -16,14 +15,11 @@ from django.db.models import Q
 
 class SignUpSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['email_phone_number'] = serializers.CharField(required=True)
+    email_phone_number = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'auth_type', 'auth_status')
+        fields = ('id', 'auth_type', 'auth_status', 'email_phone_number')
         extra_kwargs = {
             'auth_type': {'read_only': True, "required": False},
             'auth_status': {'read_only': True, "required": False},
@@ -37,8 +33,8 @@ class SignUpSerializer(serializers.ModelSerializer):
             send_mail_code(user.email, code)
         elif user.auth_type == VIA_PHONE:
             code = user.create_verify_code(verify_type=VIA_PHONE)
-            send_mail_code(user.phone, code)
-            # send_phone_code(user.phone, code)
+            # send_mail_code(user.phone, code)
+            send_phone_code(user.phone, code)
         else:
             raise exceptions.ValidationError("auth_type not defined")
         user.save()

@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from post.post.serializer import PostSerializer
-from shared.utilits import send_mail_code, check_email_or_phone
+from shared.utilits import send_mail_code, check_email_or_phone, send_phone_code
 from .models import User, CODE_VERIFIED, NEW, VIA_EMAIL, VIA_PHONE
 from .serializers import SignUpSerializer, ChangeUserInformationSerializer, ChangeUserPhotoSerializer, \
     LoginSerializer, LoginRefreshSerializer, LogoutSerializer, ForgotPasswordSerializer, UserProfileViewSerializer
@@ -68,8 +68,8 @@ class GetNewVerifyCodeAPIView(APIView):
             send_mail_code(user.email, code)
         elif user.auth_type == VIA_PHONE:
             code = user.create_verify_code(VIA_PHONE)
-            send_mail_code(user.email, code)
-            # send_phone_code(user.phone, code)
+            # send_mail_code(user.email, code)
+            send_phone_code(user.phone, code)
         else:
             context = {
                 "status": "error",
@@ -195,8 +195,8 @@ class ForgotPasswordView(APIView):
             send_mail_code(email_or_phone, code)
         elif check_email_or_phone(email_or_phone) == 'phone':
             code = user.create_verify_code(VIA_PHONE)
-            send_mail_code(email_or_phone, code)
-            # send_phone_code(user.phone, code)
+            # send_mail_code(email_or_phone, code)
+            send_phone_code(user.phone, code)
         else:
             context = {
                 "status": "error",

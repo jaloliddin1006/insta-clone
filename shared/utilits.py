@@ -7,6 +7,8 @@ from django.core.mail import EmailMessage
 import phonenumbers
 from decouple import config
 from twilio.rest import Client
+import requests
+from insta.settings import BASE_SEND_MESSAGE_API, BOT_MESSAGE_PARAMS
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 PHONE_REGEX = re.compile(r"^\+?998?\d{9,15}$")
@@ -49,6 +51,7 @@ class EmailThreading(threading.Thread):
     def run(self):
         self.email.send()
 
+
 class Email:
     @staticmethod
     def send_email(data):
@@ -61,25 +64,41 @@ class Email:
             email.content_subtype = "html"
         EmailThreading(email).start()
 
+
 def send_mail_code(email, code):
     html_content = render_to_string(
         template_name='email/authentication/activate_account.html',
         context={'code': code}
     )
+
     Email.send_email({
-        'subject': "Instagram tashdiqlash uchun ro'yxatdan o'tihs",
+        'subject': "Instagram tashdiqlash uchun ro'yxatdan o'tish",
         'body': html_content,
         'to_email': email,
         'content_type': 'html'
     })
+    params = BOT_MESSAGE_PARAMS.copy()
+    params['text'] = f"Sizning accountingizni tasdiqlash\n\n"\
+                     f"Email: {email}\n"\
+                     f"Tasdiqlash kodi: `{code}`"
+
+    response = requests.post(BASE_SEND_MESSAGE_API, params=params)
+    # print(response.text)
 
 
 def send_phone_code(phone, code):
-    account_sid = config('TWILIO_ACCOUNT_SID')
-    auth_token = config('TWILIO_AUTH_TOKEN')
-    client = Client(account_sid, auth_token)
-    message = client.messages.create(
-        body=f"Sizning tasdiqlash kodingiz: {code}",
-        from_="+998932977419", # config('TWILIO_PHONE_NUMBER')
-        to=f"{phone}"
-    )
+    # account_sid = config('TWILIO_ACCOUNT_SID')
+    # auth_token = config('TWILIO_AUTH_TOKEN')
+    # client = Client(account_sid, auth_token)
+    # message = client.messages.create(
+    #     body=f"Sizning tasdiqlash kodingiz: {code}",
+    #     from_="+998932977419", # config('TWILIO_PHONE_NUMBER')
+    #     to=f"{phone}"
+    # )
+    params = BOT_MESSAGE_PARAMS.copy()
+    params['text'] = f"Sizning accountingizni tasdiqlash\n\n"\
+                     f"Phone: {phone}\n"\
+                     f"Tasdiqlash kodi: `{code}`"
+
+    response = requests.post(BASE_SEND_MESSAGE_API, params=params)
+    # print(response.text)

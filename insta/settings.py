@@ -5,14 +5,21 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+
+BOT_TOKEN = config('BOT_TOKEN')
+CHAT_ID = config('CHAT_ID')
+TOPIC_ID = config('TOPIC_ID') if config('TOPIC_ID') else None
+BOT_MESSAGE_PARAMS = {
+        'chat_id': CHAT_ID,
+        'reply_to_message_id': TOPIC_ID,
+        'parse_mode': 'Markdown'
+}
+BASE_SEND_MESSAGE_API = f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage'
+
 
 ALLOWED_HOSTS = ['*']
 

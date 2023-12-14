@@ -7,3 +7,4 @@ phonenumbers~=8.13.26
 twilio~=8.10.2
 drf-yasg~=1.21.7
 django-jazzmin~=2.6.0
+requests
