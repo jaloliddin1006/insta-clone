@@ -3,7 +3,7 @@ from .views import CreateUserView, VerifyAPIView, GetNewVerifyCodeAPIView, Chang
     LoginAPIView, TokenRefreshView, LogoutView, ForgotPasswordView, UserProfileView
 
 urlpatterns = [
-    path('<str:username>/', UserProfileView.as_view()),
+    path('u/<str:username>/', UserProfileView.as_view()),
     path('login/', LoginAPIView.as_view()),
     path('login/refresh/', TokenRefreshView.as_view()),
     path('logout/', LogoutView.as_view()),

@@ -19,7 +19,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email_phone_number'] = serializers.CharField(required=False)
+        self.fields['email_phone_number'] = serializers.CharField(required=True)
 
     class Meta:
         model = User
